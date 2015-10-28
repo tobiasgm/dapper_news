@@ -1,5 +1,5 @@
 // create app, with name and dependencies
-angular.module('flapperNews', ['ui.router'])
+angular.module('dapperNews', ['ui.router'])
 
 // router
     .config([

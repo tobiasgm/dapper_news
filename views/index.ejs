@@ -1,6 +1,7 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <title>Flapper News</title>
+    <title>Dapper News</title>
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.10/angular-ui-router.js"></script>
@@ -12,7 +13,7 @@
     </style>
   </head>
   
-  <body ng-app="flapperNews">
+  <body ng-app="dapperNews">
     <nav class="navbar navbar-default pull-right" ng-controller="NavCtrl">
       <ul class="nav navbar-nav">
         <li ng-show="isLoggedIn()"><a>{{currentUser()}}</a></li>
@@ -30,66 +31,59 @@
     <!-- Home template -->
     <script type="text/ng-template" id="/home.html">
       <div class="page-header">
-        <h1>Flapper News</h1>
-      </div>
-      <div class="row">
-        <div class="col-md-6 col-md-offset-3">       
-          <div ng-repeat="post in posts | orderBy:'-upvotes'">
-            <span class="glyphicon glyphicon-thumbs-up"
-                  ng-click="incrementUpvotes(post)"></span>
-            {{post.upvotes}}  by {{post.author}}
-            <span style="font-size:20px; margin-left:10px;">
-              <a ng-show="post.link" href="{{post.link}}">
-                {{post.title}}
-              </a>
-              <span ng-hide="post.link">
-                {{post.title}}
-              </span>              
-              <span>         
-                <a href="#/posts/{{post._id}}">Comments</a>
-              </span>
-            </span>
-          </div>          
-          <div ng-hide="isLoggedIn()">
-            <h3>You need to <a href="/#/login">Log In</a> or <a href="/#/register">Register</a> before you can add a post.</h3>
-          </div>
-          <form ng-submit="addPost()"
-                ng-show="isLoggedIn()"
-                style="margin-top:30px;">
-            <h3>Add a new post</h3>
-            <div class="form-group">
-              <input type="text"
-                     class="form-control"
-                     placeholder="Title"
-                     ng-model="title"></input>
-            </div>
-            <div class="form-group">
-              <input type="text"
-                     class="form-control"
-                     placeholder="Link"
-                     ng-model="link"></input>
-            </div>
-            <button type="submit" class="btn btn-primary">Post</button>
-          </form>
-        </div>
-      </div>
-    </script>
-    
-    <!-- Posts template -->
-    <script type="text/ng-template" id="/posts.html">
-      <div class="page-header">
-        <span>
-          <a href="#/home"><< back to overview</a>
-                              </span>
-        <h3>
+        <h1>Dapper News</h1>
+      </div>   
+      <div ng-repeat="post in posts | orderBy:'-upvotes'">
+        <span class="glyphicon glyphicon-thumbs-up"
+              ng-click="incrementUpvotes(post)"></span>
+        {{post.upvotes}}  
+        <span style="font-size:20px; margin-left:10px;">
           <a ng-show="post.link" href="{{post.link}}">
             {{post.title}}
           </a>
           <span ng-hide="post.link">
             {{post.title}}
-          </span>
-        </h3>
+          </span>                
+          <a href="#/posts/{{post._id}}">Comments</a>
+        </span>
+        by {{post.author}}
+      </div>          
+      <div ng-hide="isLoggedIn()">
+        <h3>You need to <a href="/#/login">Log In</a> or <a href="/#/register">Register</a> before you can add a post.</h3>
       </div>
+      <form ng-submit="addPost()"
+            ng-show="isLoggedIn()"
+            style="margin-top:30px;">
+        <h3>Add a new post</h3>
+        <div class="form-group">
+          <input type="text"
+                 class="form-control"
+                 placeholder="Title"
+                 ng-model="title"></input>
+        </div>
+        <div class="form-group">
+          <input type="text"
+                 class="form-control"
+                 placeholder="Link"
+                 ng-model="link"></input>
+        </div>
+        <button type="submit" class="btn btn-primary">Post</button>
+      </form>
+    </script>
+    
+    <!-- Posts template -->
+    <script type="text/ng-template" id="/posts.html">
+      <div class="page-header">
+        <h1>Dapper News</h1>
+      </div>
+      <h3>
+        <a ng-show="post.link" href="{{post.link}}">
+          {{post.title}}
+        </a>
+        <span ng-hide="post.link">
+          {{post.title}}
+        </span>
+      </h3>
       <div ng-repeat="comment in post.comments | orderBy:'-upvotes'">
         <span class="glyphicon glyphicon-thumbs-up"
               ng-click="incrementUpvotes(comment)"></span>
@@ -114,11 +108,11 @@
         <button type="submit" class="btn btn-primary">Post</button>
       </form>
     </script>
-
+    
     <!-- Register template -->
     <script type="text/ng-template" id="/register.html">
       <div class="page-header">
-        <h1>Flapper News</h1>
+        <h1>Dapper News</h1>
       </div>
       
       <div ng-show="error" class="alert alert-danger row">
@@ -143,11 +137,11 @@
         <button type="submit" class="btn btn-primary">Register</button>
       </form>
     </script>
-
+    
     <!-- Login template -->
     <script type="text/ng-template" id="/login.html">
       <div class="page-header">
-        <h1>Flapper News</h1>
+        <h1>Dapper News</h1>
       </div>  
       <div ng-show="error" class="alert alert-danger row">
         <span>{{error.message}}</span>
