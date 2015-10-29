@@ -3,9 +3,9 @@ var mongoose = require('mongoose');
 var jwt = require('jsonwebtoken');
 
 var UserSchema = new mongoose.Schema({
-  username: {type: String, lowercase: true, unique: true},
-  hash: String,
-  salt: String
+    username: {type: String, lowercase: true, unique: true},
+    hash: String,
+    salt: String
 });
 
 // {info} The first argument of the jwt.sign() method is the payload that gets signed.

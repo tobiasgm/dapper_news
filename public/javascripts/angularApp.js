@@ -11,16 +11,20 @@ angular.module('dapperNews', ['ui.router'])
                     url: '/home',
                     templateUrl: '/home.html',
                     controller: 'MainCtrl',
+                    // By using the resolve property in this way, we are ensuring that anytime our home state is entered, we will automatically query all posts from our backend before the state actually finishes loading.
                     resolve: {
                         postPromise: ['posts', function(posts){
                             return posts.getAll();
                         }]
                     }
                 })
+            // Notice that we define our URL with brackets around 'id'.
+            // This means that 'id' is actually a route parameter that will be made available to our controller.
                 .state('posts', {
                     url: '/posts/{id}',
                     templateUrl: '/posts.html',
                     controller: 'PostsCtrl',
+                    // The Angular ui-router detects we are entering the posts state and will then automatically query the server for the full post object, including comments. Only after the request has returned will the state finish loading.
                     resolve: {
                         post: ['$stateParams', 'posts', function($stateParams, posts) {
                             return posts.get($stateParams.id);
@@ -47,7 +51,8 @@ angular.module('dapperNews', ['ui.router'])
                         }
                     }]
                 });
-            
+
+            // Use otherwise() to redirect unspecified routes    
             $urlRouterProvider.otherwise('home');
         }])
 
@@ -111,13 +116,24 @@ angular.module('dapperNews', ['ui.router'])
         return auth;
     }])
 
+
+    // {info} By Angular conventions, lowerCamelCase is used for factory names that won't be new'ed.
+    // You may be wondering why we're using the keyword factory instead of service.
+    // In angular, factory and service are related in that they are both instances of a third entity called provider.
     // posts service
     .factory('posts', ['$http', 'auth', function($http, auth){
+
+        // What we're doing here is creating a new object that has an array property called posts.
+        // We then return that variable so that our o object essentially becomes exposed to any other Angular module that cares to inject it.
+        // You'll note that we could have simply exported the posts array directly,
+        // however, by exporting an object that contains the posts array we can add new objects and methods to our services in the future.
         var o = {
             posts: []
         };
         
         // get all posts
+        // {info} It's important to use the angular.copy() method to create a deep copy of the returned data. This ensures that the $scope.posts variable in MainCtrl will also be updated, ensuring the new values are reflect in our view.
+        // In this function we're using the Angular $http service to query our posts route. The success() function allows us to bind function that will be executed when the request returns. Because our route will return a list of posts, all we need to do is copy that list to the client side posts object. Notice that we're using the angular.copy() function to do this as it will make our UI update properly.
         o.getAll = function() {
             return $http.get('/posts').success(function(data){
                 angular.copy(data, o.posts);
@@ -125,6 +141,8 @@ angular.module('dapperNews', ['ui.router'])
         };
         
         // get single post
+        // {info} MongoDB uses the _id property natively, so it's usually easier to just write our application with that in mind rather than have to translate it to an id field, which some might consider more intuitive.
+        // Notice that instead of using the success() method we have traditionally used, we are instead using a promise.
         o.get = function(id) {
             return $http.get('/posts/' + id).then(function(res){
                 return res.data;
@@ -145,7 +163,18 @@ angular.module('dapperNews', ['ui.router'])
             return $http.put('/posts/' + post._id + '/upvote', null, {
                 headers: {Authorization: 'Bearer '+auth.getToken()}
             }).success(function(data){
-                post.upvotes += 1;
+                angular.copy(data, post);
+                //console.log(data);
+            });
+        };
+
+        // downvote post
+        o.downvote = function(post) {
+            return $http.put('/posts/' + post._id + '/downvote', null, {
+                headers: {Authorization: 'Bearer '+auth.getToken()}
+            }).success(function(data){
+                angular.copy(data, post);
+                //console.log(data);
             });
         };
 
@@ -161,21 +190,32 @@ angular.module('dapperNews', ['ui.router'])
             return $http.put('/posts/' + post._id + '/comments/'+ comment._id + '/upvote', null, {
                 headers: {Authorization: 'Bearer '+auth.getToken()}
             }).success(function(data){
-                comment.upvotes += 1;
+                angular.copy(data, comment);
+            });
+        };
+
+        // downvote comment
+        o.downvoteComment = function(post, comment) {
+            return $http.put('/posts/' + post._id + '/comments/'+ comment._id + '/downvote', null, {
+                headers: {Authorization: 'Bearer '+auth.getToken()}
+            }).success(function(data){
+                angular.copy(data, comment);
             });
         };
         
         return o;
     }])
 
-
-    // main controller
+     // main controller
     .controller('MainCtrl', [
         '$scope',
         'posts',
         'auth',
         function($scope, posts, auth){
             $scope.isLoggedIn = auth.isLoggedIn;
+            // two-way data-binding only applies to variables bound to $scope.
+            // To display our array of posts that exist in the posts factory (posts.posts),
+            // we'll need to set a scope variable in our controller to mirror the array returned from the service.
             $scope.posts = posts.posts; 
             // $scope.posts = [
             // {title: 'post 1', upvotes: 5},
@@ -184,8 +224,10 @@ angular.module('dapperNews', ['ui.router'])
             // {title: 'post 4', upvotes: 9},
             // {title: 'post 5', upvotes: 4}
             // ];
+            // Have the addPost function retrieve the title/ link entered into our form,
+            // which is bound to the $scope variable title/ link, and set title/ link to blank once it has been added to the posts array:
             $scope.addPost = function(){
-                if(!$scope.title || $scope.title === '') { return; }
+                if(!$scope.title || $scope.title === '') { return; } //prevent submitting blank post
                 posts.create({
                     title: $scope.title,
                     link: $scope.link,
@@ -193,8 +235,13 @@ angular.module('dapperNews', ['ui.router'])
                 $scope.title = '';
                 $scope.link = '';
             };
+            // upvote post
             $scope.incrementUpvotes = function(post) {
                 posts.upvote(post);
+            };
+            // downvote post
+            $scope.incrementDownvotes = function(post) {
+                posts.downvote(post);
             };
         }])
 
@@ -206,7 +253,10 @@ angular.module('dapperNews', ['ui.router'])
         'auth',      
         function($scope, posts, post, auth){
             $scope.isLoggedIn = auth.isLoggedIn;
+            // To get access to the post object we just retrieved in the PostsCtrl,
+            // instead of going through the posts service, the specific object will be directly injected into our PostsCtrl.
             $scope.post = post;
+            // add comment
             $scope.addComment = function(){
                 if($scope.body === '') { return; }
                 posts.addComment(post._id, {
@@ -217,24 +267,32 @@ angular.module('dapperNews', ['ui.router'])
                 });
                 $scope.body = '';
             };
+            //upvote comment
             $scope.incrementUpvotes = function(comment){
                 posts.upvoteComment(post, comment);
             };
+            //downvote comment
+            $scope.incrementDownvotes = function(comment){
+                posts.downvoteComment(post, comment);
+            };
         }])
 
+    // authentication controller
     .controller('AuthCtrl', [
         '$scope',
         '$state',
         'auth',
         function($scope, $state, auth){
-            $scope.user = {};          
+            $scope.user = {};
+            // register user
             $scope.register = function(){
                 auth.register($scope.user).error(function(error){
                     $scope.error = error;
                 }).then(function(){
                     $state.go('home');
                 });
-            };            
+            };
+            // login user
             $scope.logIn = function(){
                 auth.logIn($scope.user).error(function(error){
                     $scope.error = error;
@@ -244,6 +302,7 @@ angular.module('dapperNews', ['ui.router'])
             };
         }])
 
+     // nav controller
     .controller('NavCtrl', [
         '$scope',
         'auth',

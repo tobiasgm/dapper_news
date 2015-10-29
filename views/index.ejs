@@ -10,9 +10,13 @@
       .glyphicon-thumbs-up {
       cursor:pointer
       }
+      .glyphicon-thumbs-down {
+      cursor:pointer
+      }
     </style>
   </head>
-  
+
+  <!-- Nav and view for templates -->
   <body ng-app="dapperNews">
     <nav class="navbar navbar-default pull-right" ng-controller="NavCtrl">
       <ul class="nav navbar-nav">
@@ -36,12 +40,15 @@
       <div ng-repeat="post in posts | orderBy:'-upvotes'">
         <span class="glyphicon glyphicon-thumbs-up"
               ng-click="incrementUpvotes(post)"></span>
-        {{post.upvotes}}  
+        <span>{{post.upvotes}}</span>  
+        <span class="glyphicon glyphicon-thumbs-down"
+              ng-click="incrementDownvotes(post)"></span>
+        <span>{{post.downvotes}}</span>
         <span style="font-size:20px; margin-left:10px;">
           <a ng-show="post.link" href="{{post.link}}">
             {{post.title}}
           </a>
-          <span ng-hide="post.link">
+          <span ng-hide="post.link"> <!--Use ng-hide to hide the linked version of the title if no link exists and correspondingly show the unlinked version:-->
             {{post.title}}
           </span>                
           <a href="#/posts/{{post._id}}">Comments</a>
@@ -51,6 +58,11 @@
       <div ng-hide="isLoggedIn()">
         <h3>You need to <a href="/#/login">Log In</a> or <a href="/#/register">Register</a> before you can add a post.</h3>
       </div>
+      <!--Here we've created a form that encompasses our title text-box and 'Post' button. 
+          We are also now calling our addPost() function using the ng-submit directive, 
+          which has the added benefit of the user being able to press the 'enter' key to submit the form. 
+          Finally, we're using the ng-model directive to bind the contents of the text box to $scope. 
+          This will allow our controller to access the contents of the text box using $scope.title.-->
       <form ng-submit="addPost()"
             ng-show="isLoggedIn()"
             style="margin-top:30px;">
@@ -87,10 +99,14 @@
       <div ng-repeat="comment in post.comments | orderBy:'-upvotes'">
         <span class="glyphicon glyphicon-thumbs-up"
               ng-click="incrementUpvotes(comment)"></span>
-        {{comment.upvotes}} - by {{comment.author}}
+        <span>{{comment.upvotes}}</span>
+        <span class="glyphicon glyphicon-thumbs-down"
+              ng-click="incrementDownvotes(comment)"></span>
+        <span>{{comment.downvotes}}</span>
         <span style="font-size:20px; margin-left:10px;">
           {{comment.body}}
         </span>
+        - by {{comment.author}}
       </div>
       <div ng-hide="isLoggedIn()">
         <h3>You need to <a href="/#/login">Log In</a> or <a href="/#/register">Register</a> before you can comment.</h3>
