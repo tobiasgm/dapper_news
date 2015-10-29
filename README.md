@@ -16,6 +16,6 @@ feature specify name when commenting: Create an 'Author' field so people can spe
 
 Other stuff:  
 feature delete post  
-feature delete comment
-security issues
-other methods for authentication (facebook..)
+feature delete comment  
+security issues  
+other methods for authentication (facebook..)  
